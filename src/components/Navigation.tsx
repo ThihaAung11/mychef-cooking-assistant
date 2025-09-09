@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Menu, X, Home, Search, BookOpen, User, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const navItems = [
   { icon: Home, label: "Home", href: "/" },
@@ -40,10 +41,12 @@ export default function Navigation() {
                   key={item.href}
                   variant="ghost"
                   className="w-full justify-start gap-3"
-                  onClick={() => setIsOpen(false)}
+                  asChild
                 >
-                  <item.icon className="w-5 h-5" />
-                  {item.label}
+                  <Link to={item.href} onClick={() => setIsOpen(false)} className="w-full flex items-center gap-3">
+                    <item.icon className="w-5 h-5" />
+                    {item.label}
+                  </Link>
                 </Button>
               ))}
             </div>
@@ -60,9 +63,11 @@ export default function Navigation() {
           
           <div className="flex items-center gap-6">
             {navItems.map((item) => (
-              <Button key={item.href} variant="ghost" className="gap-2">
-                <item.icon className="w-4 h-4" />
-                {item.label}
+              <Button key={item.href} variant="ghost" className="gap-2" asChild>
+                <Link to={item.href} className="flex items-center gap-2">
+                  <item.icon className="w-4 h-4" />
+                  {item.label}
+                </Link>
               </Button>
             ))}
           </div>
@@ -78,9 +83,11 @@ export default function Navigation() {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-sm border-t border-border">
         <div className="flex items-center justify-around p-2">
           {navItems.slice(0, 5).map((item) => (
-            <Button key={item.href} variant="ghost" size="sm" className="flex-col gap-1 h-auto py-2">
-              <item.icon className="w-5 h-5" />
-              <span className="text-xs">{item.label}</span>
+            <Button key={item.href} variant="ghost" size="sm" className="flex-col gap-1 h-auto py-2" asChild>
+              <Link to={item.href} className="flex flex-col items-center gap-1 py-2">
+                <item.icon className="w-5 h-5" />
+                <span className="text-xs">{item.label}</span>
+              </Link>
             </Button>
           ))}
         </div>
