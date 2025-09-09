@@ -1,42 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Burmese Cuisine Assistant Design System - Warm Cultural Palette */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Cultural color palette inspired by Burmese cuisine */
+    --background: 42 15% 97%;
+    --foreground: 25 20% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 42 25% 98%;
+    --card-foreground: 25 20% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 42 25% 98%;
+    --popover-foreground: 25 20% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Turmeric golden yellow as primary */
+    --primary: 45 85% 55%;
+    --primary-foreground: 42 25% 98%;
+    --primary-glow: 45 90% 70%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Earthy brown secondary */
+    --secondary: 25 35% 25%;
+    --secondary-foreground: 42 25% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Leafy green accent */
+    --accent: 120 35% 45%;
+    --accent-foreground: 42 25% 98%;
+    --accent-light: 120 25% 85%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Warm muted tones */
+    --muted: 42 20% 92%;
+    --muted-foreground: 25 15% 45%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 75% 60%;
+    --destructive-foreground: 42 25% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 42 20% 88%;
+    --input: 42 20% 90%;
+    --ring: 45 85% 55%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    /* Cultural gradients */
+    --gradient-warm: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 100%);
+    --gradient-earth: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(25 25% 35%) 100%);
+    --gradient-leaf: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(120 40% 55%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(42 20% 95%) 100%);
+
+    /* Warm shadows */
+    --shadow-warm: 0 4px 20px hsl(var(--primary) / 0.15);
+    --shadow-gentle: 0 2px 12px hsl(25 20% 15% / 0.08);
+    --shadow-card: 0 1px 6px hsl(25 20% 15% / 0.06);
+
+    /* Smooth transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     --sidebar-background: 0 0% 98%;
 
@@ -100,6 +122,87 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  /* Chat Message Bubbles */
+  .message-bubble {
+    @apply rounded-2xl px-4 py-3 max-w-[85%] break-words;
+    box-shadow: var(--shadow-card);
+    transition: var(--transition-smooth);
+  }
+
+  .message-bubble.user {
+    @apply bg-primary text-primary-foreground ml-auto;
+    background: var(--gradient-warm);
+  }
+
+  .message-bubble.assistant {
+    @apply bg-card text-card-foreground mr-auto border border-border;
+  }
+
+  /* Recipe Cards */
+  .recipe-card {
+    @apply bg-card rounded-xl overflow-hidden border border-border;
+    box-shadow: var(--shadow-card);
+    transition: var(--transition-smooth);
+  }
+
+  .recipe-card:hover {
+    box-shadow: var(--shadow-gentle);
+    transform: translateY(-2px);
+  }
+
+  /* Action Chips */
+  .action-chip {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium;
+    @apply bg-muted text-muted-foreground border border-border;
+    transition: var(--transition-smooth);
+  }
+
+  .action-chip:hover {
+    @apply bg-primary/10 text-primary border-primary/20;
+  }
+
+  .action-chip.active {
+    @apply bg-primary text-primary-foreground border-primary;
+    background: var(--gradient-warm);
+  }
+
+  /* Gradient Backgrounds */
+  .bg-gradient-warm {
+    background: var(--gradient-warm);
+  }
+
+  .bg-gradient-earth {
+    background: var(--gradient-earth);
+  }
+
+  .bg-gradient-leaf {
+    background: var(--gradient-leaf);
+  }
+
+  .bg-gradient-subtle {
+    background: var(--gradient-subtle);
+  }
+
+  /* Cultural Pattern Overlay */
+  .pattern-overlay {
+    position: relative;
+  }
+
+  .pattern-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.03;
+    background-image: radial-gradient(circle at 2px 2px, hsl(var(--primary)) 1px, transparent 0);
+    background-size: 20px 20px;
   }
 }
