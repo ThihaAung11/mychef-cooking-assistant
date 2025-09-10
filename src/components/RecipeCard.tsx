@@ -1,6 +1,7 @@
 import { Star, Clock, Users, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 interface RecipeCardProps {
   id: string;
@@ -15,6 +16,7 @@ interface RecipeCardProps {
 }
 
 export default function RecipeCard({
+  id,
   title,
   image,
   rating,
@@ -24,10 +26,21 @@ export default function RecipeCard({
   tags,
   description,
 }: RecipeCardProps) {
+  const navigate = useNavigate();
+  
   const difficultyColors = {
     Easy: "bg-accent text-accent-foreground",
     Medium: "bg-primary text-primary-foreground", 
     Hard: "bg-secondary text-secondary-foreground"
+  };
+
+  const handleCookNow = () => {
+    navigate('/chat', { 
+      state: { 
+        recipe: { id, title, image, rating, cookTime, servings, difficulty, tags, description },
+        startCooking: true
+      } 
+    });
   };
 
   return (
@@ -93,7 +106,7 @@ export default function RecipeCard({
           <Button variant="outline" className="flex-1 rounded-full">
             View Recipe
           </Button>
-          <Button className="flex-1 rounded-full">
+          <Button className="flex-1 rounded-full" onClick={handleCookNow}>
             Cook Now
           </Button>
         </div>

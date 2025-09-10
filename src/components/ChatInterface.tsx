@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Send, Camera, Clock, Heart, Users, Bookmark, Share2, Play, ArrowRight, RotateCcw, Pause, ChefHat, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,6 +68,7 @@ const shortcuts = [
 ];
 
 export default function ChatInterface() {
+  const location = useLocation();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -127,6 +129,25 @@ export default function ChatInterface() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Handle recipe data from navigation
+  useEffect(() => {
+    const state = location.state as { recipe?: any; startCooking?: boolean } | null;
+    if (state?.recipe && state?.startCooking) {
+      // Add recipe message
+      const recipeMessage: Message = {
+        id: Date.now().toString(),
+        text: `Let's cook ${state.recipe.title}! I'll guide you through each step. Ready to start?`,
+        isUser: false,
+        timestamp: new Date(),
+        type: 'recipe',
+        data: state.recipe
+      };
+      
+      setMessages(prev => [...prev, recipeMessage]);
+      startCookingSession(state.recipe.title);
+    }
+  }, [location.state]);
 
   const startCookingSession = (recipeTitle: string) => {
     setCookingSession({
