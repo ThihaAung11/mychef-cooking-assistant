@@ -49,6 +49,14 @@ export default function RecipeCard({
             {difficulty}
           </Badge>
         </div>
+        {/* Hover Quick Actions (Desktop) */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 p-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100 hidden md:block">
+          <div className="pointer-events-auto flex items-center justify-center gap-2 rounded-full bg-background/80 backdrop-blur-sm p-2 shadow-sm">
+            <Button size="sm" variant="warm" className="rounded-full">Cook Now</Button>
+            <Button size="sm" variant="secondary" className="rounded-full">Save</Button>
+            <Button size="sm" variant="outline" className="rounded-full">Share</Button>
+          </div>
+        </div>
       </div>
 
       {/* Content */}

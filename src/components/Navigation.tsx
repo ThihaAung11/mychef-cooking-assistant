@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Menu, X, Home, Search, BookOpen, User, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { icon: Home, label: "Home", href: "/" },
@@ -13,6 +14,7 @@ const navItems = [
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
+  const { isAuthenticated, logout } = useAuth();
 
   return (
     <>
@@ -74,7 +76,20 @@ export default function Navigation() {
 
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm">EN</Button>
-            <Button variant="warm" size="sm">Sign In</Button>
+            {!isAuthenticated ? (
+              <Button variant="warm" size="sm" asChild>
+                <Link to="/login">Sign In</Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/profile" className="gap-2">
+                    <User className="w-4 h-4" /> Profile
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm" onClick={logout}>Logout</Button>
+              </>
+            )}
           </div>
         </div>
       </nav>
