@@ -88,10 +88,15 @@ export default function RecipeCard({
           )}
         </div>
 
-        {/* Action */}
-        <Button className="w-full rounded-full">
-          View Recipe
-        </Button>
+        {/* Actions */}
+        <div className="flex gap-2">
+          <Button variant="outline" className="flex-1 rounded-full">
+            View Recipe
+          </Button>
+          <Button className="flex-1 rounded-full">
+            Cook Now
+          </Button>
+        </div>
       </div>
     </div>
   );
