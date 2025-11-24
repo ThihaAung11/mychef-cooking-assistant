@@ -1,8 +1,12 @@
-import { useState } from "react";
-import { Send, Camera, Clock, Heart, Users, Bookmark, Share2, Play } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Send, Bookmark, Star, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { chatService } from "@/services/chat.service";
+import { toast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
+import type { ChatMessage as APIChatMessage, Recipe } from "@/types/api.types";
 
 interface Message {
   id: string;
@@ -41,73 +45,181 @@ const quickActions = [
   { label: "Spicy dishes", icon: "🌶️" },
 ];
 
-const shortcuts = [
-  { label: "Upload Ingredient", icon: Camera },
-  { label: "My Recipes", icon: Heart },
-  { label: "Community", icon: Users },
-  { label: "Resume Cooking", icon: Clock },
-];
-
 export default function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      text: "မင်္ဂလာပါ! Welcome to your Burmese cooking assistant. I'm here to help you discover delicious recipes and cooking techniques. What would you like to cook today?",
-      isUser: false,
-      timestamp: new Date(),
-      type: 'text'
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [waitingTime, setWaitingTime] = useState(0);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const waitingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const sendMessage = () => {
+  // Load chat history on mount (only if on /chat page, not on home)
+  useEffect(() => {
+    // Don't load history on home page for non-logged-in users
+    const isHomePage = window.location.pathname === '/';
+    
+    if (isHomePage) {
+      // Just show welcome message on home page
+      setMessages([{
+        id: "welcome",
+        text: "မင်္ဂလာပါ! Welcome to your Burmese cooking assistant. I'm here to help you discover delicious recipes and cooking techniques. What would you like to cook today?",
+        isUser: false,
+        timestamp: new Date(),
+        type: 'text',
+      }]);
+      setLoading(false);
+      return;
+    }
+
+    // Load history for chat page
+    (async () => {
+      try {
+        const history = await chatService.getHistory();
+        const mapped: Message[] = [];
+        history.forEach((h) => {
+          // User message
+          if (h.user_message) {
+            mapped.push({
+              id: `user-${h.message_id}`,
+              text: h.user_message,
+              isUser: true,
+              timestamp: new Date(h.created_at),
+              type: 'text',
+            });
+          }
+          // AI reply
+          if (h.ai_reply) {
+            mapped.push({
+              id: `ai-${h.message_id}`,
+              text: h.ai_reply,
+              isUser: false,
+              timestamp: new Date(h.created_at),
+              type: 'text',
+            });
+          }
+          // Recipe recommendation if present
+          if (h.cooking_recipe) {
+            mapped.push({
+              id: `recipe-${h.message_id}`,
+              isUser: false,
+              timestamp: new Date(h.created_at),
+              type: 'recipe',
+              data: h.cooking_recipe,
+            });
+          }
+        });
+        if (mapped.length === 0) {
+          mapped.push({
+            id: "welcome",
+            text: "မင်္ဂလာပါ! Welcome to your Burmese cooking assistant. I'm here to help you discover delicious recipes and cooking techniques. What would you like to cook today?",
+            isUser: false,
+            timestamp: new Date(),
+            type: 'text',
+          });
+        }
+        setMessages(mapped);
+      } catch (err) {
+        console.error('Failed to load chat history:', err);
+        setMessages([{
+          id: "welcome",
+          text: "မင်္ဂလာပါ! Welcome to your Burmese cooking assistant. I'm here to help you discover delicious recipes and cooking techniques. What would you like to cook today?",
+          isUser: false,
+          timestamp: new Date(),
+          type: 'text',
+        }]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (waitingTimerRef.current) {
+        clearInterval(waitingTimerRef.current);
+      }
+    };
+  }, []);
+
+  const sendMessage = async () => {
     if (!inputText.trim()) return;
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
       text: inputText,
       isUser: true,
       timestamp: new Date(),
       type: 'text'
     };
 
-    setMessages((prev) => [...prev, newMessage]);
+    setMessages((prev) => [...prev, userMessage]);
+    const query = inputText;
     setInputText("");
     setIsTyping(true);
+    setWaitingTime(0);
 
-    // Simulate assistant response with rich content
-    setTimeout(() => {
-      setIsTyping(false);
-      const responses: Message[] = [
-        {
-          id: (Date.now() + 1).toString(),
-          text: "Perfect! I found some delicious Burmese recipes for you. Here's a popular one:",
-          isUser: false,
-          timestamp: new Date(),
-          type: 'text'
-        },
-        {
-          id: (Date.now() + 2).toString(),
-          isUser: false,
-          timestamp: new Date(),
-          type: 'recipe',
-          data: {
-            title: "Traditional Mohinga",
-            image: "/src/assets/mohinga-dish.jpg",
-            tags: ["Traditional", "30 min", "Comfort Food"],
-            rating: 4.8,
-            cookTime: "30 min"
-          }
-        }
-      ];
+    // Start waiting timer
+    waitingTimerRef.current = setInterval(() => {
+      setWaitingTime((prev) => prev + 1);
+    }, 1000);
+
+    try {
+      const res = await chatService.sendMessage(query);
       
-      responses.forEach((response, index) => {
+      // Clear timer
+      if (waitingTimerRef.current) {
+        clearInterval(waitingTimerRef.current);
+        waitingTimerRef.current = null;
+      }
+      setIsTyping(false);
+      setWaitingTime(0);
+
+      // AI reply message
+      if (res.ai_reply) {
+        const assistantMessage: Message = {
+          id: `ai-${res.message_id}`,
+          text: res.ai_reply,
+          isUser: false,
+          timestamp: new Date(),
+          type: 'text',
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+      }
+
+      // Add recipe recommendation if present
+      if (res.cooking_recipe) {
         setTimeout(() => {
-          setMessages((prev) => [...prev, response]);
-        }, index * 500);
-      });
-    }, 1500);
+          const recipeMsg: Message = {
+            id: `recipe-${res.message_id}`,
+            isUser: false,
+            timestamp: new Date(),
+            type: 'recipe',
+            data: res.cooking_recipe,
+          };
+          setMessages((prev) => [...prev, recipeMsg]);
+        }, 400);
+      }
+    } catch (err: any) {
+      // Clear timer
+      if (waitingTimerRef.current) {
+        clearInterval(waitingTimerRef.current);
+        waitingTimerRef.current = null;
+      }
+      setIsTyping(false);
+      setWaitingTime(0);
+      
+      const errorMsg = err?.code === 'ECONNABORTED' || err?.message?.includes('timeout')
+        ? "Request timed out. AI is taking too long to respond. Please try again."
+        : err?.message || "Failed to send message";
+      
+      toast({ title: "Error", description: errorMsg, variant: "destructive" });
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -117,29 +229,32 @@ export default function ChatInterface() {
   };
 
   return (
-    <div className="flex flex-col h-full max-w-4xl mx-auto bg-gradient-subtle">
-      {/* Header */}
-      <div className="p-4 border-b border-border bg-card/80 backdrop-blur-sm">
-        <h2 className="text-xl font-semibold text-foreground">Burmese Cuisine Assistant</h2>
-        <p className="text-sm text-muted-foreground">Your personal cooking companion</p>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className="flex flex-col h-full w-full bg-background">
+      {/* Messages Area - Apple Messages style */}
+      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-3">
+        {loading && <div className="text-center text-sm text-muted-foreground py-8">Loading...</div>}
+        
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-4`}
+            className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
           >
             {message.type === 'text' ? (
-              <div className={`message-bubble ${message.isUser ? 'user' : 'assistant'}`}>
-                <p className="text-sm leading-relaxed">{message.text}</p>
-                <span className="text-xs opacity-70 mt-1 block">
-                  {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
+              <div 
+                className={`max-w-[85%] md:max-w-[70%] rounded-[20px] px-4 py-2.5 ${
+                  message.isUser 
+                    ? 'bg-primary text-primary-foreground ml-auto' 
+                    : 'bg-muted text-foreground'
+                }`}
+              >
+                <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">
+                  {message.text}
+                </p>
               </div>
             ) : message.type === 'recipe' ? (
-              <RecipeEmbedCard data={message.data} />
+              <div className="max-w-[85%] md:max-w-[70%]">
+                <RecipeEmbedCard data={message.data} />
+              </div>
             ) : message.type === 'step' ? (
               <StepCard data={message.data} />
             ) : message.type === 'nutrition' ? (
@@ -150,47 +265,52 @@ export default function ChatInterface() {
         
         {/* Typing Indicator */}
         {isTyping && (
-          <div className="flex justify-start mb-4">
-            <TypingIndicator />
+          <div className="flex justify-start">
+            <div className="bg-muted rounded-[20px] px-4 py-3">
+              <TypingIndicator waitingTime={waitingTime} />
+            </div>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick Actions */}
-      <div className="p-4 space-y-3">
-        <div className="flex flex-wrap gap-2">
-          {quickActions.map((action) => (
-            <button key={action.label} className="action-chip">
-              <span>{action.icon}</span>
-              <span>{action.label}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Shortcuts */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {shortcuts.map((shortcut) => (
-            <Button key={shortcut.label} variant="outline" size="sm" className="h-auto py-3 flex-col gap-1">
-              <shortcut.icon className="w-4 h-4" />
-              <span className="text-xs">{shortcut.label}</span>
-            </Button>
-          ))}
-        </div>
+      {/* Input Area - Fixed at bottom, Apple style */}
+      <div className="border-t bg-background/95 backdrop-blur-lg px-4 md:px-6 py-3 safe-area-inset-bottom">
+        {/* Quick Actions - Only show if no messages yet */}
+        {messages.length <= 1 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {quickActions.map((action) => (
+              <button 
+                key={action.label}
+                onClick={() => setInputText(action.label)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors text-sm"
+              >
+                <span>{action.icon}</span>
+                <span>{action.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Input */}
         <div className="flex gap-2 items-end">
-          <Button variant="outline" size="sm" className="rounded-full p-2">
-            <Camera className="w-4 h-4" />
-          </Button>
-          <Input
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Ask me what to cook today..."
-            className="flex-1 rounded-full bg-muted/50 border-border"
-          />
-          <Button onClick={sendMessage} size="sm" className="rounded-full px-4 bg-gradient-warm">
-            <Send className="w-4 h-4" />
+          <div className="flex-1 relative">
+            <Input
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Message"
+              className="h-11 rounded-[22px] bg-muted border-0 px-4 text-[15px] placeholder:text-muted-foreground/60"
+              disabled={isTyping}
+            />
+          </div>
+          <Button 
+            onClick={sendMessage} 
+            disabled={!inputText.trim() || isTyping}
+            size="icon"
+            className="h-11 w-11 rounded-full shadow-sm shrink-0"
+          >
+            <Send className="w-5 h-5" />
           </Button>
         </div>
       </div>
@@ -199,50 +319,58 @@ export default function ChatInterface() {
 }
 
 // Recipe Embed Card Component
-function RecipeEmbedCard({ data }: { data: RecipeData }) {
+function RecipeEmbedCard({ data }: { data: Recipe }) {
+  const totalMins = (data.preparation_time || 0) + (data.cooking_time || 0);
+  const cookTime = totalMins ? `${totalMins}min` : '-';
+  const image = data.image_url || "/placeholder.svg";
+  const rating = data.average_rating || 0;
+  
   return (
-    <div className="bg-card rounded-xl border border-border max-w-sm overflow-hidden shadow-card">
-      <div className="relative aspect-[4/3] overflow-hidden">
-        <img
-          src={data.image}
-          alt={data.title}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute top-2 right-2">
-          <Button size="sm" variant="outline" className="rounded-full bg-background/80 backdrop-blur-sm">
-            <Bookmark className="w-3 h-3" />
-          </Button>
-        </div>
-      </div>
-      <div className="p-4 space-y-3">
-        <div>
-          <h3 className="font-semibold text-base leading-tight mb-1">{data.title}</h3>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>⭐ {data.rating}</span>
-            <span>•</span>
-            <span>{data.cookTime}</span>
+    <Link to={`/recipes/${data.id}`} className="block">
+      <div className="bg-card rounded-xl border border-border max-w-sm overflow-hidden shadow-card hover:shadow-lg transition-shadow">
+        <div className="relative aspect-[4/3] overflow-hidden">
+          <img
+            src={image}
+            alt={data.title}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute top-2 left-2">
+            {data.difficulty_level && (
+              <Badge>{data.difficulty_level}</Badge>
+            )}
           </div>
         </div>
-        
-        <div className="flex flex-wrap gap-1">
-          {data.tags.map((tag) => (
-            <Badge key={tag} variant="secondary" className="text-xs">
-              {tag}
-            </Badge>
-          ))}
-        </div>
-        
-        <div className="flex gap-2">
-          <Button size="sm" className="flex-1 rounded-full bg-gradient-warm">
-            <Play className="w-3 h-3 mr-1" />
-            Cook Now
-          </Button>
-          <Button size="sm" variant="outline" className="rounded-full">
-            <Share2 className="w-3 h-3" />
+        <div className="p-4 space-y-3">
+          <div>
+            <h3 className="font-semibold text-base leading-tight mb-1">{data.title}</h3>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>⭐ {Number(rating.toFixed(1))}</span>
+              <span>•</span>
+              <span>{cookTime}</span>
+              {data.servings && (
+                <>
+                  <span>•</span>
+                  <span>{data.servings} servings</span>
+                </>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-1">
+            {data.cuisine_type && (
+              <Badge variant="secondary" className="text-xs">{data.cuisine_type}</Badge>
+            )}
+            {data.difficulty_level && (
+              <Badge variant="outline" className="text-xs">{data.difficulty_level}</Badge>
+            )}
+          </div>
+          
+          <Button size="sm" className="w-full rounded-full">
+            View Recipe
           </Button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -296,7 +424,15 @@ function NutritionCard({ data }: { data: NutritionData }) {
 }
 
 // Typing Indicator Component
-function TypingIndicator() {
+function TypingIndicator({ waitingTime }: { waitingTime: number }) {
+  const getMessage = () => {
+    if (waitingTime < 5) return "Assistant is typing...";
+    if (waitingTime < 15) return "Thinking deeply...";
+    if (waitingTime < 30) return "AI is processing your request...";
+    if (waitingTime < 60) return `Still working... (${waitingTime}s)`;
+    return `This is taking longer than usual... (${waitingTime}s)`;
+  };
+
   return (
     <div className="message-bubble assistant">
       <div className="flex items-center gap-1">
@@ -305,7 +441,7 @@ function TypingIndicator() {
           <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></div>
           <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
         </div>
-        <span className="text-xs text-muted-foreground ml-2">Assistant is typing...</span>
+        <span className="text-xs text-muted-foreground ml-2">{getMessage()}</span>
       </div>
     </div>
   );

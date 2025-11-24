@@ -3,15 +3,13 @@ import Navigation from "@/components/Navigation";
 
 const Chat = () => {
   return (
-    <div className="min-h-screen bg-gradient-subtle pattern-overlay">
+    <div className="h-screen flex flex-col bg-background">
       <Navigation />
       
-      {/* Main Content */}
-      <main className="pt-16 md:pt-20 pb-8">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border shadow-gentle overflow-hidden h-[calc(100vh-8rem)]">
-            <ChatInterface />
-          </div>
+      {/* Full-screen chat - Apple Messages style */}
+      <main className="flex-1 flex flex-col pt-14 md:pt-16 pb-16 md:pb-0 overflow-hidden">
+        <div className="flex-1 flex flex-col max-w-5xl w-full mx-auto">
+          <ChatInterface />
         </div>
       </main>
     </div>

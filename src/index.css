@@ -4,57 +4,59 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Burmese Cuisine Assistant Design System - Warm Cultural Palette */
+/* Premium Food App - Glassmorphism with Warm Amber Gold */
 
 @layer base {
   :root {
-    /* Cultural color palette inspired by Burmese cuisine */
-    --background: 42 15% 97%;
-    --foreground: 25 20% 15%;
+    /* Glass UI with Premium Food Colors */
+    --background: 38 25% 98%;
+    --foreground: 30 15% 15%;
 
-    --card: 42 25% 98%;
-    --card-foreground: 25 20% 15%;
+    /* Frosted glass cards with warm tint */
+    --card: 0 0% 100% / 0.7;
+    --card-foreground: 30 15% 15%;
 
-    --popover: 42 25% 98%;
-    --popover-foreground: 25 20% 15%;
+    --popover: 0 0% 100% / 0.9;
+    --popover-foreground: 30 15% 15%;
 
-    /* Turmeric golden yellow as primary */
-    --primary: 45 85% 55%;
-    --primary-foreground: 42 25% 98%;
-    --primary-glow: 45 90% 70%;
+    /* Premium Amber/Honey Gold - Appetite-stimulating */
+    --primary: 38 92% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 42 95% 58%;
 
-    /* Earthy brown secondary */
-    --secondary: 25 35% 25%;
-    --secondary-foreground: 42 25% 98%;
+    /* Rich espresso brown */
+    --secondary: 30 35% 25%;
+    --secondary-foreground: 0 0% 98%;
 
-    /* Leafy green accent */
-    --accent: 120 35% 45%;
-    --accent-foreground: 42 25% 98%;
-    --accent-light: 120 25% 85%;
+    /* Warm cream accent */
+    --accent: 38 40% 95%;
+    --accent-foreground: 30 15% 15%;
+    --accent-light: 38 30% 98%;
 
-    /* Warm muted tones */
-    --muted: 42 20% 92%;
-    --muted-foreground: 25 15% 45%;
+    /* Warm translucent muted */
+    --muted: 38 20% 95%;
+    --muted-foreground: 30 10% 45%;
 
-    --destructive: 0 75% 60%;
-    --destructive-foreground: 42 25% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 42 20% 88%;
-    --input: 42 20% 90%;
-    --ring: 45 85% 55%;
+    /* Warm glass borders */
+    --border: 38 25% 88%;
+    --input: 0 0% 100% / 0.5;
+    --ring: 38 92% 50%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    /* Cultural gradients */
-    --gradient-warm: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 100%);
-    --gradient-earth: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(25 25% 35%) 100%);
-    --gradient-leaf: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(120 40% 55%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(42 20% 95%) 100%);
+    /* Warm golden glass gradients */
+    --gradient-warm: linear-gradient(135deg, hsl(var(--primary) / 0.9) 0%, hsl(var(--primary-glow) / 0.8) 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 251, 245, 0.7) 0%, rgba(255, 255, 255, 0.3) 100%);
+    --gradient-frost: linear-gradient(180deg, rgba(255, 252, 248, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(38 25% 98%) 0%, hsl(38 20% 96%) 100%);
 
-    /* Warm shadows */
-    --shadow-warm: 0 4px 20px hsl(var(--primary) / 0.15);
-    --shadow-gentle: 0 2px 12px hsl(25 20% 15% / 0.08);
-    --shadow-card: 0 1px 6px hsl(25 20% 15% / 0.06);
+    /* Glass shadows - soft and floating */
+    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.08);
+    --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.06);
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04);
 
     /* Smooth transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -78,41 +80,63 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Dark mode with warm amber accents - Premium food aesthetic */
+    --background: 30 20% 8%;
+    --foreground: 38 15% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    /* Dark glass cards with warm tint */
+    --card: 30 15% 12% / 0.8;
+    --card-foreground: 38 15% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 30 15% 10% / 0.95;
+    --popover-foreground: 38 15% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Glowing amber gold in dark mode */
+    --primary: 42 96% 55%;
+    --primary-foreground: 30 20% 10%;
+    --primary-glow: 45 100% 62%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    /* Deep espresso secondary */
+    --secondary: 30 25% 20%;
+    --secondary-foreground: 38 15% 95%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    /* Dark warm accent */
+    --accent: 30 20% 18%;
+    --accent-foreground: 38 15% 95%;
+    --accent-light: 30 15% 22%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    /* Dark translucent muted */
+    --muted: 30 15% 15%;
+    --muted-foreground: 38 10% 65%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Dark glass borders - subtle glow */
+    --border: 38 20% 25%;
+    --input: 30 15% 15% / 0.5;
+    --ring: 42 96% 55%;
+
+    /* Dark mode sidebars */
+    --sidebar-background: 30 20% 10%;
+    --sidebar-foreground: 38 15% 90%;
+    --sidebar-primary: 42 96% 55%;
+    --sidebar-primary-foreground: 30 20% 10%;
+    --sidebar-accent: 30 15% 15%;
+    --sidebar-accent-foreground: 38 15% 95%;
+    --sidebar-border: 38 15% 20%;
+    --sidebar-ring: 42 96% 55%;
+
+    /* Dark glass gradients with warm glow */
+    --gradient-warm: linear-gradient(135deg, hsl(42 96% 55% / 0.9) 0%, hsl(45 100% 62% / 0.8) 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(40, 30, 20, 0.7) 0%, rgba(30, 25, 20, 0.3) 100%);
+    --gradient-frost: linear-gradient(180deg, rgba(35, 28, 22, 0.8) 0%, rgba(30, 25, 20, 0.6) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(30 20% 8%) 0%, hsl(30 18% 10%) 100%);
+
+    /* Dark shadows with warm glow */
+    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.6);
+    --shadow-float: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
 }
 
@@ -128,65 +152,102 @@
 }
 
 @layer components {
-  /* Chat Message Bubbles */
+  /* Chat Message Bubbles - Glass Effect */
   .message-bubble {
     @apply rounded-2xl px-4 py-3 max-w-[85%] break-words;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     box-shadow: var(--shadow-card);
     transition: var(--transition-smooth);
+    border: 1px solid rgba(255, 255, 255, 0.2);
   }
 
   .message-bubble.user {
-    @apply bg-primary text-primary-foreground ml-auto;
+    @apply text-primary-foreground ml-auto;
     background: var(--gradient-warm);
+    backdrop-filter: blur(20px);
   }
 
   .message-bubble.assistant {
-    @apply bg-card text-card-foreground mr-auto border border-border;
+    @apply text-card-foreground mr-auto;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
   }
 
-  /* Recipe Cards */
+  /* Recipe Cards - Frosted Glass */
   .recipe-card {
-    @apply bg-card rounded-xl overflow-hidden border border-border;
+    @apply rounded-2xl overflow-hidden;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     box-shadow: var(--shadow-card);
     transition: var(--transition-smooth);
+    border: 1px solid rgba(255, 255, 255, 0.3);
   }
 
   .recipe-card:hover {
-    box-shadow: var(--shadow-gentle);
-    transform: translateY(-2px);
+    box-shadow: var(--shadow-float);
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.5);
   }
 
-  /* Action Chips */
+  /* Action Chips - Glass */
   .action-chip {
     @apply inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium;
-    @apply bg-muted text-muted-foreground border border-border;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     transition: var(--transition-smooth);
   }
 
   .action-chip:hover {
-    @apply bg-primary/10 text-primary border-primary/20;
+    background: rgba(234, 179, 8, 0.15);
+    border: 1px solid rgba(234, 179, 8, 0.3);
+    transform: translateY(-1px);
   }
 
   .action-chip.active {
-    @apply bg-primary text-primary-foreground border-primary;
+    @apply text-primary-foreground;
     background: var(--gradient-warm);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
   }
 
-  /* Gradient Backgrounds */
+  /* Glass Backgrounds */
   .bg-gradient-warm {
     background: var(--gradient-warm);
+    backdrop-filter: blur(20px);
   }
 
-  .bg-gradient-earth {
-    background: var(--gradient-earth);
+  .bg-gradient-glass {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(20px);
   }
 
-  .bg-gradient-leaf {
-    background: var(--gradient-leaf);
+  .bg-gradient-frost {
+    background: var(--gradient-frost);
+    backdrop-filter: blur(20px);
   }
 
   .bg-gradient-subtle {
     background: var(--gradient-subtle);
+  }
+
+  /* Glass Card Utility */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: var(--shadow-card);
+  }
+
+  .glass-card-hover:hover {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: var(--shadow-float);
   }
 
   /* Cultural Pattern Overlay */
