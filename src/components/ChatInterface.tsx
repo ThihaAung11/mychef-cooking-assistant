@@ -7,7 +7,6 @@ import { chatService } from "@/services/chat.service";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import type { ChatMessage as APIChatMessage, Recipe } from "@/types/api.types";
-
 interface Message {
   id: string;
   text?: string;
@@ -29,6 +28,23 @@ interface StepData {
   stepNumber: number;
   instruction: string;
   timerMinutes?: number;
+  tips?: string;
+}
+
+interface CookingSession {
+  recipeTitle: string;
+  steps: StepData[];
+  currentStep: number;
+  isActive: boolean;
+  isPaused: boolean;
+}
+
+interface Timer {
+  id: string;
+  label: string;
+  duration: number;
+  remaining: number;
+  isActive: boolean;
 }
 
 interface NutritionData {
@@ -228,12 +244,28 @@ export default function ChatInterface() {
     }
   };
 
+  // Render cooking mode if active
+  if (cookingSession?.isActive) {
+    return (
+      <CookingMode 
+        session={cookingSession}
+        timers={timers}
+        onNextStep={nextStep}
+        onRepeatStep={repeatStep}
+        onPauseCooking={pauseCooking}
+        onStartTimer={startTimer}
+        onToggleTimer={toggleTimer}
+        onRemoveTimer={removeTimer}
+        onExitCooking={exitCookingMode}
+      />
+    );
+  }
+
   return (
     <div className="flex flex-col h-full w-full bg-background">
       {/* Messages Area - Apple Messages style */}
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-3">
         {loading && <div className="text-center text-sm text-muted-foreground py-8">Loading...</div>}
-        
         {messages.map((message) => (
           <div
             key={message.id}
@@ -443,6 +475,191 @@ function TypingIndicator({ waitingTime }: { waitingTime: number }) {
         </div>
         <span className="text-xs text-muted-foreground ml-2">{getMessage()}</span>
       </div>
+    </div>
+  );
+}
+
+// Cooking Mode Component
+interface CookingModeProps {
+  session: CookingSession;
+  timers: Timer[];
+  onNextStep: () => void;
+  onRepeatStep: () => void;
+  onPauseCooking: () => void;
+  onStartTimer: (label: string, minutes: number) => void;
+  onToggleTimer: (id: string) => void;
+  onRemoveTimer: (id: string) => void;
+  onExitCooking: () => void;
+}
+
+function CookingMode({ 
+  session, 
+  timers, 
+  onNextStep, 
+  onRepeatStep, 
+  onPauseCooking, 
+  onStartTimer, 
+  onToggleTimer, 
+  onRemoveTimer, 
+  onExitCooking 
+}: CookingModeProps) {
+  const currentStep = session.steps[session.currentStep];
+  const progress = ((session.currentStep + 1) / session.steps.length) * 100;
+  const isLastStep = session.currentStep === session.steps.length - 1;
+
+  return (
+    <div className="flex flex-col h-full max-w-4xl mx-auto bg-gradient-subtle">
+      {/* Cooking Header */}
+      <div className="p-4 border-b border-border bg-card/90 backdrop-blur-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <ChefHat className="w-5 h-5 text-primary" />
+              {session.recipeTitle}
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Step {session.currentStep + 1} of {session.steps.length}
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={onExitCooking}>
+            Exit Cooking
+          </Button>
+        </div>
+        
+        {/* Progress Bar */}
+        <div className="mt-3">
+          <Progress value={progress} className="h-2" />
+        </div>
+      </div>
+
+      {/* Active Timers */}
+      {timers.length > 0 && (
+        <div className="p-4 border-b border-border bg-accent/20">
+          <div className="flex flex-wrap gap-2">
+            {timers.map((timer) => (
+              <TimerCard
+                key={timer.id}
+                timer={timer}
+                onToggle={() => onToggleTimer(timer.id)}
+                onRemove={() => onRemoveTimer(timer.id)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Current Step */}
+      <div className="flex-1 p-6 flex items-center justify-center">
+        <div className="current-cooking-step max-w-2xl w-full">
+          <div className="bg-card rounded-2xl border border-border p-8 shadow-gentle">
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground rounded-full text-xl font-bold mb-4">
+                {currentStep.stepNumber}
+              </div>
+              <h3 className="text-2xl font-semibold text-foreground leading-relaxed">
+                {currentStep.instruction}
+              </h3>
+            </div>
+
+            {/* Tips */}
+            {currentStep.tips && (
+              <div className="bg-accent/20 rounded-lg p-4 mb-6">
+                <p className="text-sm text-muted-foreground">
+                  <strong>💡 Tip:</strong> {currentStep.tips}
+                </p>
+              </div>
+            )}
+
+            {/* Timer Button */}
+            {currentStep.timerMinutes && (
+              <div className="flex justify-center mb-6">
+                <Button 
+                  variant="outline" 
+                  onClick={() => onStartTimer(`Step ${currentStep.stepNumber}`, currentStep.timerMinutes!)}
+                  className="gap-2 bg-gradient-warm text-primary-foreground border-0"
+                >
+                  <Clock className="w-4 h-4" />
+                  Start {currentStep.timerMinutes}min timer
+                </Button>
+              </div>
+            )}
+
+            {/* Step Controls */}
+            <div className="flex gap-3 justify-center">
+              <Button 
+                variant="outline" 
+                onClick={onRepeatStep}
+                className="gap-2"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Repeat
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                onClick={onPauseCooking}
+                className="gap-2"
+              >
+                <Pause className="w-4 h-4" />
+                {session.isPaused ? 'Resume' : 'Pause'}
+              </Button>
+
+              {!isLastStep ? (
+                <Button 
+                  onClick={onNextStep}
+                  className="gap-2 bg-gradient-warm"
+                  disabled={session.isPaused}
+                >
+                  Next Step
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              ) : (
+                <Button 
+                  onClick={onExitCooking}
+                  className="gap-2 bg-gradient-earth"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  Complete Recipe
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Timer Card Component
+function TimerCard({ timer, onToggle, onRemove }: { 
+  timer: Timer; 
+  onToggle: () => void; 
+  onRemove: () => void; 
+}) {
+  const minutes = Math.floor(timer.remaining / 60);
+  const seconds = timer.remaining % 60;
+  const isFinished = timer.remaining === 0;
+
+  return (
+    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
+      isFinished 
+        ? 'bg-destructive/20 border-destructive text-destructive' 
+        : timer.isActive 
+          ? 'bg-primary/20 border-primary text-primary' 
+          : 'bg-muted border-border text-muted-foreground'
+    }`}>
+      <Clock className="w-3 h-3" />
+      <span className="text-sm font-medium">
+        {timer.label}: {minutes}:{seconds.toString().padStart(2, '0')}
+      </span>
+      {!isFinished && (
+        <Button size="sm" variant="ghost" onClick={onToggle} className="h-auto p-1">
+          {timer.isActive ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+        </Button>
+      )}
+      <Button size="sm" variant="ghost" onClick={onRemove} className="h-auto p-1 text-destructive">
+        ×
+      </Button>
     </div>
   );
 }

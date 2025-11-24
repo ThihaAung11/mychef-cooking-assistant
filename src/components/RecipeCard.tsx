@@ -46,6 +46,8 @@ export default function RecipeCard({
   creatorName,
   creatorImage,
 }: RecipeCardProps) {
+  const navigate = useNavigate();
+  
   const difficultyColors = {
     Easy: "bg-accent text-accent-foreground",
     Medium: "bg-primary text-primary-foreground", 
@@ -57,7 +59,6 @@ export default function RecipeCard({
     const target = e.currentTarget;
     if (target.src.endsWith("/placeholder.svg")) return;
     target.src = "/placeholder.svg";
-  };
 
   return (
     <Link 
@@ -127,7 +128,6 @@ export default function RecipeCard({
             </div>
           </div>
         </div>
-      </div>
 
       {/* Content */}
       <div className="p-5 space-y-3.5 bg-gradient-to-b from-card to-card/50">
