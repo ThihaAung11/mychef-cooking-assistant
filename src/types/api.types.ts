@@ -42,6 +42,7 @@ export interface User {
   email: string;
   name: string | null;
   profile_image_url: string | null;
+  is_admin?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -95,6 +96,7 @@ export interface Recipe {
   total_feedbacks?: number;
   steps?: RecipeStep[]; // New structured steps from backend
   creator?: RecipeCreator; // Creator info from backend
+  is_saved?: boolean; // Whether the current user has saved this recipe
 }
 
 export interface RecipeStep {
@@ -222,6 +224,7 @@ export interface ChatMessage {
 
 export interface ChatRequest {
   message: string;
+  recipe_id?: string;
 }
 
 export interface ChatResponse {

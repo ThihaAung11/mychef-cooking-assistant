@@ -7,7 +7,7 @@ import { toast } from "@/hooks/use-toast";
 type AuthContextType = {
   isAuthenticated: boolean;
   user: User | null;
-  login: (credentials: LoginRequest) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<User>;
   logout: () => void;
   loading: boolean;
   refreshUser: () => Promise<void>;
@@ -34,6 +34,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           try {
             const freshUser = await authService.getCurrentUser();
             setUser(freshUser);
+            
+            // Auto-redirect admin users to admin dashboard
+            if (freshUser.is_admin) {
+              const currentPath = window.location.pathname;
+              const adminPaths = ['/login', '/', '/discover'];
+              if (adminPaths.includes(currentPath)) {
+                window.location.href = '/admin';
+              }
+            }
           } catch (error) {
             // Token might be expired, logout
             authService.logout();
@@ -50,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  const login = async (credentials: LoginRequest) => {
+  const login = async (credentials: LoginRequest): Promise<User> => {
     try {
       const { user: loggedInUser } = await authService.login(credentials);
       setUser(loggedInUser);
@@ -58,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Welcome back!",
         description: `Logged in as ${loggedInUser.username}`,
       });
+      return loggedInUser;
     } catch (error: any) {
       const errorMsg = formatApiError(error);
       toast({

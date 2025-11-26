@@ -4,7 +4,12 @@ import type { SavedRecipe } from "@/types/api.types";
 
 export const savedRecipesService = {
   async list(): Promise<SavedRecipe[]> {
-    const res = await apiService.get<SavedRecipe[]>(API_CONFIG.ENDPOINTS.SAVED_RECIPES);
+    const res = await apiService.get<any>(API_CONFIG.ENDPOINTS.SAVED_RECIPES);
+    // Handle paginated response structure
+    if (res.data && Array.isArray(res.data.items)) {
+      return res.data.items as SavedRecipe[];
+    }
+    // Fallback for direct array response
     return Array.isArray(res.data) ? res.data : [];
   },
 

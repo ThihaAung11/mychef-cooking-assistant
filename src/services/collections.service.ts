@@ -25,7 +25,7 @@ export const collectionsService = {
    */
   async getById(id: number): Promise<RecipeCollection> {
     const res = await apiService.get<RecipeCollection>(
-      API_CONFIG.ENDPOINTS.COLLECTION_DETAIL(id)
+      `${API_CONFIG.ENDPOINTS.COLLECTION_DETAIL(id)}?include_recipes=true`
     );
     return res.data as RecipeCollection;
   },

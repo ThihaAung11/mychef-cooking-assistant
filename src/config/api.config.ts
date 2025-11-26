@@ -32,6 +32,7 @@ export const API_CONFIG = {
     USER_UPDATE: '/users/me',
     USER_UPLOAD_IMAGE: '/users/me/upload-profile-image',
     USER_CHANGE_PASSWORD: '/users/me/change-password',
+    USER_COOKING_SESSIONS: '/cooking-sessions/my-sessions',
     
     // Recipes
     RECIPES: '/recipes/',
@@ -42,11 +43,11 @@ export const API_CONFIG = {
     RECIPE_STEP_MEDIA: (id: string, stepNumber: number) => `/recipes/${id}/steps/${stepNumber}/upload-media`,
     
     // Saved Recipes
-    SAVED_RECIPES: '/saved-recipes',  // Try without trailing slash
+    SAVED_RECIPES: '/saved-recipes/my-saved-recipes',
     SAVED_RECIPE_DELETE: (id: string) => `/saved-recipes/${id}`,
     
     // Cooking Sessions
-    COOKING_SESSIONS: '/cooking-sessions/',
+    COOKING_SESSIONS: '/cooking-sessions/my-sessions',
     COOKING_SESSION_END: (id: string) => `/cooking-sessions/${id}/end`,
     
     // Feedbacks

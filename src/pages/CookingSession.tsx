@@ -112,17 +112,16 @@ export default function CookingSession() {
     if (!chatInput.trim() || isSending) return;
 
     const userMessage = chatInput.trim();
-    const contextMessage = `I'm cooking "${recipe?.title}" (Step ${currentStep + 1}/${steps.length}: ${steps[currentStep]}). ${userMessage}`;
     const userMsgId = Date.now().toString();
     
-    // Add user message immediately
+    // Add user message immediately (only show the actual message, not recipe context)
     setChatMessages(prev => [...prev, { id: userMsgId, text: userMessage, isUser: true }]);
     setChatInput("");
     setIsSending(true);
 
     try {
-      // Send with recipe context
-      const response = await chatService.sendMessage(contextMessage);
+      // Send message with recipe ID attached (but not visible to user)
+      const response = await chatService.sendMessage(userMessage, id);
       
       // Add AI response
       if (response.ai_reply) {
@@ -158,10 +157,10 @@ export default function CookingSession() {
     }
   };
 
-  // Auto-scroll chat
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatMessages]);
+  // Auto-scroll chat - disabled to prevent unwanted position changes
+  // useEffect(() => {
+  //   messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // }, [chatMessages]);
 
   // Auto-start session
   useEffect(() => {
@@ -340,18 +339,18 @@ export default function CookingSession() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-hidden bg-gradient-to-b from-background to-muted/10">
-        <div className="h-full grid md:grid-cols-2 gap-0 divide-x divide-border">
+        <div className="h-full grid md:grid-cols-2 lg:grid-cols-[1fr_400px] gap-0 divide-x divide-border">
           {/* Left: Cooking Steps */}
-          <div className={`flex flex-col bg-background/50 backdrop-blur-sm ${showChat ? 'hidden md:flex' : 'flex'}`}>
+          <div className={`flex flex-col bg-background ${showChat ? 'hidden md:flex' : 'flex'}`}>
             {/* Progress bar */}
-            <div className="px-4 py-3 border-b border-border/50 bg-card/30 backdrop-blur-sm sticky top-0 z-10">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold">Progress</span>
-                <span className="text-xs text-muted-foreground font-medium">
+            <div className="px-4 md:px-6 py-4 border-b border-border bg-card sticky top-0 z-10 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-bold">Progress</span>
+                <span className="text-sm text-muted-foreground font-semibold bg-muted/50 px-2 py-1 rounded-full">
                   {completedSteps.length}/{steps.length}
                 </span>
               </div>
-              <div className="h-2 bg-muted/50 rounded-full overflow-hidden border border-border/30">
+              <div className="h-3 bg-muted/50 rounded-full overflow-hidden border border-border/30">
                 <div 
                   className="h-full bg-gradient-to-r from-primary via-primary/80 to-secondary transition-all duration-500 shadow-sm"
                   style={{ width: `${(completedSteps.length / steps.length) * 100}%` }}
@@ -360,15 +359,15 @@ export default function CookingSession() {
             </div>
 
             {/* Current Step - Scrollable */}
-            <div className="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
-              <div className="max-w-3xl mx-auto space-y-4">
-                <div className="flex items-center gap-3 p-3 bg-card/50 rounded-lg border border-border/50">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground font-bold text-base shadow-lg">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
+              <div className="max-w-4xl mx-auto space-y-6">
+                <div className="flex items-center gap-4 p-4 md:p-5 bg-card/70 rounded-xl border-2 border-primary/20 shadow-sm">
+                  <div className="h-12 w-12 md:h-14 md:w-14 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground font-bold text-lg md:text-xl shadow-lg">
                     {currentStep + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground font-medium">Current Step</p>
-                    <p className="font-bold text-sm truncate">Step {currentStep + 1} of {steps.length}</p>
+                    <p className="text-sm text-muted-foreground font-semibold">Current Step</p>
+                    <p className="font-bold text-base md:text-lg truncate">Step {currentStep + 1} of {steps.length}</p>
                   </div>
                   <Button
                     size="sm"
@@ -381,38 +380,38 @@ export default function CookingSession() {
                   </Button>
                 </div>
 
-                <Card className="p-5 bg-gradient-to-br from-card to-muted/20 border-2 shadow-lg">
+                <Card className="p-6 md:p-8 bg-gradient-to-br from-card to-muted/20 border-2 shadow-lg">
                   <div 
-                    className="text-base leading-relaxed"
+                    className="text-lg md:text-xl leading-relaxed font-medium text-foreground"
                     dangerouslySetInnerHTML={{ __html: highlightIngredients(steps[currentStep]) }}
                   />
                 </Card>
                 
                 {/* Next Step Preview */}
                 {currentStep < steps.length - 1 && (
-                  <Card className="p-3 bg-muted/30 border border-dashed border-border/50">
-                    <div className="flex items-start gap-2">
-                      <div className="flex-shrink-0 w-5 h-5 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
+                  <Card className="p-4 md:p-5 bg-muted/40 border border-dashed border-border/60">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 md:w-7 md:h-7 rounded-full bg-muted flex items-center justify-center text-sm font-semibold text-muted-foreground">
                         {currentStep + 2}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-muted-foreground mb-0.5">Next</p>
-                        <p className="text-xs text-muted-foreground line-clamp-2">{steps[currentStep + 1]}</p>
+                        <p className="text-sm font-semibold text-muted-foreground mb-1">Next Step</p>
+                        <p className="text-sm md:text-base text-muted-foreground line-clamp-2 leading-relaxed">{steps[currentStep + 1]}</p>
                       </div>
                     </div>
                   </Card>
                 )}
 
                 {/* All Steps Overview - Hidden on mobile */}
-                <div className="pt-4 border-t-2 border-border/50 hidden md:block">
-                  <div className="flex items-center justify-between mb-4 px-1">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <ChefHat className="w-4 h-4 text-primary" />
+                <div className="pt-6 border-t-2 border-border/50 hidden md:block">
+                  <div className="flex items-center justify-between mb-5 px-1">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-lg bg-primary/15 flex items-center justify-center">
+                        <ChefHat className="w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-sm">Recipe Steps</h3>
-                        <p className="text-xs text-muted-foreground">Click to jump to any step</p>
+                        <h3 className="font-bold text-base">All Recipe Steps</h3>
+                        <p className="text-sm text-muted-foreground">Click to jump to any step</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -524,21 +523,23 @@ export default function CookingSession() {
             </div>
 
             {/* Navigation */}
-            <div className="border-t border-border/50 p-3 bg-card/50 backdrop-blur-sm sticky bottom-0 shadow-lg">
-              <div className="flex items-center gap-2 max-w-3xl mx-auto">
+            <div className="border-t border-border p-4 md:p-5 bg-card sticky bottom-0 shadow-lg">
+              <div className="flex items-center gap-3 md:gap-4 max-w-4xl mx-auto">
                 <Button
                   variant="outline"
+                  size="lg"
                   onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
                   disabled={currentStep === 0}
-                  className="flex-1 shadow-sm"
+                  className="flex-1 shadow-sm font-semibold"
                 >
-                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  <ChevronLeft className="w-4 h-4 mr-2" />
                   Previous
                 </Button>
-                <div className="text-xs text-muted-foreground font-medium px-1.5">
+                <div className="text-sm text-muted-foreground font-bold px-3 py-2 bg-muted/50 rounded-lg">
                   {currentStep + 1}/{steps.length}
                 </div>
                 <Button
+                  size="lg"
                   onClick={() => {
                     if (currentStep < steps.length - 1) {
                       setCurrentStep(currentStep + 1);
@@ -546,7 +547,7 @@ export default function CookingSession() {
                       handleFinish();
                     }
                   }}
-                  className="flex-1 shadow-sm"
+                  className="flex-1 shadow-sm font-semibold"
                 >
                   {currentStep === steps.length - 1 ? 'Finish' : 'Next'}
                   {currentStep < steps.length - 1 && <ChevronRight className="w-4 h-4 ml-1" />}

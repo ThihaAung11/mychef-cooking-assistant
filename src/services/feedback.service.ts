@@ -4,7 +4,12 @@ import type { Feedback, CreateFeedbackRequest, UpdateFeedbackRequest } from "@/t
 
 export const feedbackService = {
   async getByRecipe(recipeId: string): Promise<Feedback[]> {
-    const res = await apiService.get<Feedback[]>(API_CONFIG.ENDPOINTS.FEEDBACK_BY_RECIPE(recipeId));
+    const res = await apiService.get<any>(API_CONFIG.ENDPOINTS.FEEDBACK_BY_RECIPE(recipeId));
+    // Handle paginated response structure
+    if (res.data && Array.isArray(res.data.items)) {
+      return res.data.items as Feedback[];
+    }
+    // Fallback for direct array response
     return Array.isArray(res.data) ? res.data : [];
   },
 

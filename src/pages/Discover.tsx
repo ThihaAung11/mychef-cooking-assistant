@@ -18,6 +18,7 @@ import { savedRecipesService } from "@/services/saved-recipes.service";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
+import type { Recipe } from "@/types/api.types";
 
 // Placeholder for missing images
 const placeholder = "/placeholder.svg";
@@ -81,55 +82,50 @@ export default function Discover() {
     setPage(1);
   }, [q, cuisine, difficulty, maxTime, diet]);
 
-  const shown = recipes;
-
   const toggleArray = (arr: string[], value: string, setter: (v: string[]) => void) => {
     setter(arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value]);
   };
 
-  // Local saved map: recipeId -> savedId
-  const [savedMap, setSavedMap] = useState<Record<string, string>>({});
+  // Track recipes state for optimistic updates
+  const [recipesState, setRecipesState] = useState<Recipe[]>([]);
 
-  // Hydrate saved recipes on load if authenticated
+  // Update local state when recipes data changes
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        if (!user) {
-          setSavedMap({});
-          return;
-        }
-        const list = await savedRecipesService.list();
-        if (!mounted) return;
-        const map: Record<string, string> = {};
-        list.forEach((s) => {
-          if (s.recipe_id) map[String(s.recipe_id)] = String(s.id);
-          else if ((s as any).recipe?.id) map[String((s as any).recipe.id)] = String(s.id);
-        });
-        setSavedMap(map);
-      } catch {}
-    })();
-    return () => { mounted = false; };
-  }, [user]);
+    setRecipesState(recipes);
+  }, [recipes]);
 
   const handleSave = async (recipeId: string) => {
-    const savedId = savedMap[recipeId];
+    const recipe = recipesState.find(r => String(r.id) === recipeId);
+    if (!recipe) return;
+
+    // Optimistic update
+    setRecipesState(prev => prev.map(r => 
+      String(r.id) === recipeId 
+        ? { ...r, is_saved: !r.is_saved }
+        : r
+    ));
+
     try {
-      if (savedId) {
-        // Unsave
-        await savedRecipesService.delete(savedId);
-        setSavedMap((m) => {
-          const { [recipeId]: _, ...rest } = m;
-          return rest;
-        });
+      if (recipe.is_saved) {
+        // Unsave - need to find the saved recipe ID first
+        const savedRecipes = await savedRecipesService.list();
+        const savedRecord = savedRecipes.find(s => String(s.recipe_id) === recipeId);
+        if (savedRecord) {
+          await savedRecipesService.delete(String(savedRecord.id));
+        }
         toast({ title: t('discover.removed'), description: t('discover.recipeRemoved') });
       } else {
         // Save
-        const res = await savedRecipesService.save(recipeId);
-        setSavedMap((m) => ({ ...m, [recipeId]: String(res.id) }));
+        await savedRecipesService.save(recipeId);
         toast({ title: t('discover.saved'), description: t('discover.recipeAdded') });
       }
     } catch (err: any) {
+      // Revert optimistic update on error
+      setRecipesState(prev => prev.map(r => 
+        String(r.id) === recipeId 
+          ? { ...r, is_saved: !r.is_saved }
+          : r
+      ));
       const msg = typeof err?.message === 'string' ? err.message : 'Unable to update saved recipes';
       toast({ title: t('discover.actionFailed'), description: msg, variant: "destructive" });
     }
@@ -369,9 +365,9 @@ export default function Discover() {
             {!isLoading && (
               <div className="mb-3">
                 <p className="text-xs text-muted-foreground">
-                  {shown.length > 0 ? (
+                  {recipesState.length > 0 ? (
                     <>
-                      {shown.length} {shown.length === 1 ? 'recipe' : 'recipes'}
+                      {recipesState.length} {recipesState.length === 1 ? 'recipe' : 'recipes'}
                       {q && <span className="ml-1">• searching for "{q}"</span>}
                     </>
                   ) : q ? (
@@ -410,7 +406,7 @@ export default function Discover() {
               )}
               
               {/* Empty state - Beautiful */}
-              {!isLoading && shown.length === 0 && (
+              {!isLoading && recipesState.length === 0 && (
                 <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
                   <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center mb-4">
                     <Search className="w-10 h-10 text-muted-foreground" />
@@ -424,7 +420,7 @@ export default function Discover() {
                   </Button>
                 </div>
               )}
-              {!isLoading && shown.map((r) => {
+              {!isLoading && recipesState.map((r) => {
                 const totalMins = (r.preparation_time || 0) + (r.cooking_time || 0);
                 const image = recipesService.getCardImage(r.image_url);
                 const rating = typeof r.average_rating === 'number' ? r.average_rating : 0;
@@ -445,7 +441,7 @@ export default function Discover() {
                     difficulty={(r.difficulty_level as any) || "Medium"}
                     tags={[r.cuisine_type || "", r.difficulty_level || ""].filter(Boolean) as string[]}
                     description={r.description}
-                    saved={!!savedMap[String(r.id)]}
+                    saved={r.is_saved || false}
                     onSave={handleSave}
                     hasSteps={hasSteps}
                     stepCount={stepCount}
@@ -456,7 +452,7 @@ export default function Discover() {
               })}
             </div>
 
-            {!isLoading && shown.length > 0 && (
+            {!isLoading && recipesState.length > 0 && (
               <div className="flex items-center justify-center gap-2 pt-4">
                 <Button 
                   variant="outline" 
@@ -472,7 +468,7 @@ export default function Discover() {
                   variant="outline"
                   size="sm"
                   onClick={() => setPage((p) => p + 1)}
-                  disabled={isFetching || shown.length < pageSize}
+                  disabled={isFetching || recipesState.length < pageSize}
                   className="h-9"
                 >
                   {t('discover.next')}

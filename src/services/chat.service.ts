@@ -7,10 +7,15 @@ const CHAT_TIMEOUT = 120000; // 120 seconds (2 minutes)
 const HISTORY_TIMEOUT = 30000; // 30 seconds
 
 export const chatService = {
-  async sendMessage(message: string, timeoutMs: number = CHAT_TIMEOUT): Promise<ChatResponse> {
+  async sendMessage(message: string, recipeId?: string, timeoutMs: number = CHAT_TIMEOUT): Promise<ChatResponse> {
+    const requestData: ChatRequest = { message };
+    if (recipeId) {
+      requestData.recipe_id = recipeId;
+    }
+    
     const res = await apiService.post<ChatResponse>(
       API_CONFIG.ENDPOINTS.CHAT, 
-      { message },
+      requestData,
       { timeout: timeoutMs }
     );
     return res.data as ChatResponse;

@@ -29,8 +29,14 @@ export default function Login() {
     setError(null);
 
     try {
-      await login({ username, password });
-      navigate(redirectTo, { replace: true });
+      const loggedInUser = await login({ username, password });
+      
+      // Check if user is admin and redirect accordingly
+      if (loggedInUser && loggedInUser.is_admin) {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate(redirectTo, { replace: true });
+      }
     } catch (err: any) {
       // Error is already shown in toast by AuthProvider
       setError(err.detail || t('login.loginFailed'));

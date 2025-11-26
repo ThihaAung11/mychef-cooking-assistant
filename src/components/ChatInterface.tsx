@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { Send, Bookmark, Star, Clock } from "lucide-react";
+import { Send, Bookmark, Star, Clock, ChefHat, Pause, Play, RotateCcw, ArrowRight, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { chatService } from "@/services/chat.service";
 import { toast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -67,8 +68,53 @@ export default function ChatInterface() {
   const [isTyping, setIsTyping] = useState(false);
   const [loading, setLoading] = useState(true);
   const [waitingTime, setWaitingTime] = useState(0);
+  const [cookingSession, setCookingSession] = useState<CookingSession | null>(null);
+  const [timers, setTimers] = useState<Timer[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const waitingTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Add missing cooking session functions
+  const nextStep = () => {
+    if (cookingSession) {
+      setCookingSession(prev => prev ? { ...prev, currentStep: prev.currentStep + 1 } : null);
+    }
+  };
+
+  const repeatStep = () => {
+    // Repeat current step logic
+  };
+
+  const pauseCooking = () => {
+    if (cookingSession) {
+      setCookingSession(prev => prev ? { ...prev, isPaused: !prev.isPaused } : null);
+    }
+  };
+
+  const startTimer = (label: string, minutes: number) => {
+    const newTimer: Timer = {
+      id: `timer-${Date.now()}`,
+      label,
+      duration: minutes * 60,
+      remaining: minutes * 60,
+      isActive: true
+    };
+    setTimers(prev => [...prev, newTimer]);
+  };
+
+  const toggleTimer = (id: string) => {
+    setTimers(prev => prev.map(timer => 
+      timer.id === id ? { ...timer, isActive: !timer.isActive } : timer
+    ));
+  };
+
+  const removeTimer = (id: string) => {
+    setTimers(prev => prev.filter(timer => timer.id !== id));
+  };
+
+  const exitCookingMode = () => {
+    setCookingSession(null);
+    setTimers([]);
+  };
 
   // Load chat history on mount (only if on /chat page, not on home)
   useEffect(() => {
@@ -409,7 +455,7 @@ function RecipeEmbedCard({ data }: { data: Recipe }) {
 // Step Card Component
 function StepCard({ data }: { data: StepData }) {
   return (
-    <div className="bg-accent-light rounded-xl border border-accent/20 max-w-md p-4">
+    <div className="bg-accent rounded-xl border border-accent/20 max-w-md p-4">
       <div className="flex items-start gap-3">
         <div className="bg-accent text-accent-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold">
           {data.stepNumber}
@@ -431,7 +477,7 @@ function StepCard({ data }: { data: StepData }) {
 // Nutrition Card Component  
 function NutritionCard({ data }: { data: NutritionData }) {
   return (
-    <div className="bg-gradient-earth rounded-xl max-w-sm p-4 text-secondary-foreground">
+    <div className="bg-secondary rounded-xl max-w-sm p-4 text-secondary-foreground">
       <h3 className="font-semibold mb-3 text-sm">Nutrition Per Serving</h3>
       <div className="grid grid-cols-2 gap-3 text-xs">
         <div className="text-center">
@@ -508,7 +554,7 @@ function CookingMode({
   const isLastStep = session.currentStep === session.steps.length - 1;
 
   return (
-    <div className="flex flex-col h-full max-w-4xl mx-auto bg-gradient-subtle">
+    <div className="flex flex-col h-full max-w-4xl mx-auto bg-background">
       {/* Cooking Header */}
       <div className="p-4 border-b border-border bg-card/90 backdrop-blur-sm">
         <div className="flex items-center justify-between">
@@ -550,8 +596,8 @@ function CookingMode({
 
       {/* Current Step */}
       <div className="flex-1 p-6 flex items-center justify-center">
-        <div className="current-cooking-step max-w-2xl w-full">
-          <div className="bg-card rounded-2xl border border-border p-8 shadow-gentle">
+        <div className="max-w-2xl w-full">
+          <div className="bg-card rounded-2xl border border-border p-8 shadow-md">
             <div className="text-center mb-6">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground rounded-full text-xl font-bold mb-4">
                 {currentStep.stepNumber}
@@ -576,7 +622,7 @@ function CookingMode({
                 <Button 
                   variant="outline" 
                   onClick={() => onStartTimer(`Step ${currentStep.stepNumber}`, currentStep.timerMinutes!)}
-                  className="gap-2 bg-gradient-warm text-primary-foreground border-0"
+                  className="gap-2 bg-primary text-primary-foreground border-0"
                 >
                   <Clock className="w-4 h-4" />
                   Start {currentStep.timerMinutes}min timer
@@ -607,7 +653,7 @@ function CookingMode({
               {!isLastStep ? (
                 <Button 
                   onClick={onNextStep}
-                  className="gap-2 bg-gradient-warm"
+                  className="gap-2 bg-primary"
                   disabled={session.isPaused}
                 >
                   Next Step
@@ -616,7 +662,7 @@ function CookingMode({
               ) : (
                 <Button 
                   onClick={onExitCooking}
-                  className="gap-2 bg-gradient-earth"
+                  className="gap-2 bg-secondary"
                 >
                   <CheckCircle className="w-4 h-4" />
                   Complete Recipe

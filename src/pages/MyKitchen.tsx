@@ -275,7 +275,57 @@ export default function MyKitchen() {
                     {savedRecipes.length} saved {savedRecipes.length === 1 ? 'recipe' : 'recipes'}
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* TODO: Map saved recipes here */}
+                    {savedRecipes.map((savedRecipe) => {
+                      const recipe = savedRecipe.recipe;
+                      if (!recipe) return null;
+                      
+                      return (
+                        <Link
+                          key={savedRecipe.id}
+                          to={`/recipes/${savedRecipe.recipe_id}`}
+                          className="group block h-full"
+                        >
+                          <Card className="h-full hover:shadow-lg hover:border-primary/30 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden border-2">
+                            {recipe.image_url && (
+                              <div className="aspect-video w-full overflow-hidden">
+                                <img
+                                  src={recipesService.getCardImage(recipe.image_url)}
+                                  alt={recipe.title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                />
+                              </div>
+                            )}
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-base font-bold line-clamp-2 group-hover:text-primary transition-colors">
+                                {recipe.title}
+                              </CardTitle>
+                              <div className="flex flex-wrap items-center gap-2 mt-2">
+                                {recipe.cooking_time && (
+                                  <Badge variant="secondary" className="gap-1 text-xs">
+                                    <Clock className="w-3 h-3" />
+                                    {formatCookingTime(recipe.cooking_time)}
+                                  </Badge>
+                                )}
+                                <Badge className="gap-1 text-xs bg-green-500/10 text-green-600 border-green-500/20">
+                                  <Heart className="w-3 h-3" />
+                                  Saved
+                                </Badge>
+                                {recipe.difficulty_level && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {recipe.difficulty_level}
+                                  </Badge>
+                                )}
+                              </div>
+                              {recipe.description && (
+                                <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                                  {recipe.description}
+                                </p>
+                              )}
+                            </CardHeader>
+                          </Card>
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
               )}

@@ -18,11 +18,11 @@ interface RecipeCardProps {
   description: string;
   saved?: boolean;
   onSave?: (id: string) => void;
-  hasSteps?: boolean;
-  stepCount?: number;
-  showEdit?: boolean;
-  creatorName?: string;
-  creatorImage?: string | null;
+  hasSteps?: boolean; // Indicates structured steps available
+  stepCount?: number; // Number of steps
+  showEdit?: boolean; // Show edit button for user's own recipes
+  creatorName?: string; // Creator name
+  creatorImage?: string | null; // Creator profile image
 }
 
 export default function RecipeCard({
@@ -131,7 +131,7 @@ export default function RecipeCard({
         </div>
       </div>
 
-      {/* Content */}
+      {/* Content */
       <div className="p-5 space-y-3.5 bg-gradient-to-b from-card to-card">
         <div className="space-y-2">
           <h3 className="font-bold text-lg leading-tight line-clamp-1 group-hover:text-primary transition-colors duration-200">

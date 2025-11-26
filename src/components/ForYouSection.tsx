@@ -174,6 +174,7 @@ export default function ForYouSection({ searchQuery = "", filters = {}, compact 
                 difficulty={recipe.difficulty_level as any || "Medium"}
                 tags={[recipe.cuisine_type, recipe.difficulty_level].filter(Boolean) as string[]}
                 description={recipe.description || ""}
+                saved={recipe.is_saved || false}
                 hasSteps={hasSteps}
                 stepCount={stepCount}
                 creatorName={recipe.creator ? (recipe.creator.name || recipe.creator.username) : undefined}
@@ -245,6 +246,7 @@ export default function ForYouSection({ searchQuery = "", filters = {}, compact 
                 difficulty={recipe.difficulty_level as any || "Medium"}
                 tags={[recipe.cuisine_type, recipe.difficulty_level].filter(Boolean) as string[]}
                 description={recipe.description || ""}
+                saved={recipe.is_saved || false}
                 hasSteps={hasSteps}
                 stepCount={stepCount}
                 creatorName={recipe.creator ? (recipe.creator.name || recipe.creator.username) : undefined}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { collectionsService } from "@/services/collections.service";
@@ -24,6 +24,7 @@ export default function CollectionDetail() {
   const queryClient = useQueryClient();
   const [isAddRecipeOpen, setIsAddRecipeOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [missingRecipes, setMissingRecipes] = useState<Record<number, Recipe>>({});
 
   // Fetch collection
   const { data: collection, isLoading } = useQuery<RecipeCollection>({
@@ -70,6 +71,27 @@ export default function CollectionDetail() {
       toast({ title: "Day updated!" });
     },
   });
+
+  // Fetch missing recipe details
+  useEffect(() => {
+    if (collection?.items) {
+      const missingItems = collection.items.filter(item => !item.recipe);
+      
+      missingItems.forEach(async (item) => {
+        if (!missingRecipes[item.recipe_id]) {
+          try {
+            const recipe = await recipesService.getById(String(item.recipe_id));
+            setMissingRecipes(prev => ({
+              ...prev,
+              [item.recipe_id]: recipe
+            }));
+          } catch (error) {
+            console.warn(`Failed to fetch recipe ${item.recipe_id}:`, error);
+          }
+        }
+      });
+    }
+  }, [collection?.items, missingRecipes]);
 
   const isMealPlan = collection?.collection_type === "meal_plan";
 
@@ -135,14 +157,18 @@ export default function CollectionDetail() {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {collection.items.map((item) => (
+              {collection.items.map((item) => {
+                // Use recipe data from collection or fallback to individually fetched recipe
+                const recipe = item.recipe || missingRecipes[item.recipe_id];
+                
+                return (
                 <div key={item.id} className="group">
                   <Link to={`/recipes/${item.recipe_id}`} className="block">
-                    <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted mb-3">
-                      {item.recipe?.image_url ? (
+                    <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted mb-3 shadow-sm hover:shadow-md transition-all duration-300">
+                      {recipe?.image_url ? (
                         <img
-                          src={recipesService.getCardImage(item.recipe.image_url)}
-                          alt={item.recipe.title}
+                          src={recipesService.getCardImage(recipe.image_url)}
+                          alt={recipe.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       ) : (
@@ -158,7 +184,7 @@ export default function CollectionDetail() {
                           e.stopPropagation();
                           removeRecipeMutation.mutate(item.recipe_id);
                         }}
-                        className="absolute top-2 right-2 w-8 h-8 rounded-full bg-background/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
+                        className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-600 shadow-lg"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -166,7 +192,7 @@ export default function CollectionDetail() {
                       {/* Day badge for meal plans */}
                       {isMealPlan && item.day_of_week && (
                         <div className="absolute bottom-2 left-2">
-                          <Badge className="bg-background/90 backdrop-blur-sm text-xs">
+                          <Badge className="bg-primary text-primary-foreground shadow-lg text-xs font-semibold">
                             {item.day_of_week}
                           </Badge>
                         </div>
@@ -174,13 +200,13 @@ export default function CollectionDetail() {
                     </div>
 
                     <h3 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
-                      {item.recipe?.title || `Recipe #${item.recipe_id}`}
+                      {recipe?.title || "Recipe"}
                     </h3>
                     
-                    {item.recipe?.cooking_time && (
+                    {recipe?.cooking_time && (
                       <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        {formatCookingTime(item.recipe.cooking_time)}
+                        {formatCookingTime(recipe.cooking_time)}
                       </p>
                     )}
                   </Link>
@@ -207,7 +233,8 @@ export default function CollectionDetail() {
                     </div>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
