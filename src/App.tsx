@@ -20,6 +20,7 @@ import CollectionDetail from "./pages/CollectionDetail";
 import MyKitchen from "./pages/MyKitchen";
 import ApiTest from "./pages/ApiTest";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import { AuthProvider } from "./hooks/useAuth";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import AdminLayout from "./components/AdminLayout";
@@ -129,9 +130,9 @@ const App = () => (
             <Route
               path="/admin"
               element={
-                <ProtectedRoute>
+                <AdminProtectedRoute>
                   <AdminLayout />
-                </ProtectedRoute>
+                </AdminProtectedRoute>
               }
             >
               <Route index element={<AdminDashboard />} />
