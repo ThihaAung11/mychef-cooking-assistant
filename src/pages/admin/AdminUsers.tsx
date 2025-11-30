@@ -10,6 +10,7 @@ export default function AdminUsers() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export default function AdminUsers() {
     }
   };
 
-  const handleToggleStatus = async (id: string, isActive: boolean) => {
+  const handleToggleStatus = async (id: number, isActive: boolean) => {
     try {
       if (isActive) {
         await adminService.users.deactivate(id);
@@ -50,10 +51,16 @@ export default function AdminUsers() {
     }
   };
 
-  const filteredUsers = users.filter((user) =>
-    user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch = user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'active' && user.is_active) ||
+      (statusFilter === 'inactive' && !user.is_active);
+    
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="space-y-6">
@@ -62,7 +69,7 @@ export default function AdminUsers() {
         <p className="text-muted-foreground">Manage all users in the platform</p>
       </div>
 
-      <Card className="glass-card p-4">
+      <Card className="glass-card p-4 space-y-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -71,6 +78,30 @@ export default function AdminUsers() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
+        </div>
+        
+        <div className="flex gap-2">
+          <Button 
+            variant={statusFilter === 'all' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setStatusFilter('all')}
+          >
+            All ({users.length})
+          </Button>
+          <Button 
+            variant={statusFilter === 'active' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setStatusFilter('active')}
+          >
+            Active ({users.filter(u => u.is_active).length})
+          </Button>
+          <Button 
+            variant={statusFilter === 'inactive' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setStatusFilter('inactive')}
+          >
+            Inactive ({users.filter(u => !u.is_active).length})
+          </Button>
         </div>
       </Card>
 
@@ -102,7 +133,10 @@ export default function AdminUsers() {
               ) : (
                 filteredUsers.map((user) => (
                   <tr key={user.id} className="border-b hover:bg-accent/50">
-                    <td className="px-6 py-4 font-medium">{user.username}</td>
+                    <td className="px-6 py-4">
+                      <div className="font-medium">{user.username}</div>
+                      <div className="text-sm text-muted-foreground">{user.name || 'No name'}</div>
+                    </td>
                     <td className="px-6 py-4">{user.email}</td>
                     <td className="px-6 py-4">
                       <span
@@ -115,7 +149,15 @@ export default function AdminUsers() {
                         {user.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm">{user.is_admin ? 'Admin' : 'User'}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        user.role_name === 'admin' 
+                          ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' 
+                          : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                      }`}>
+                        {user.role_name === 'admin' ? 'Admin' : 'User'}
+                      </span>
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
                         <Button

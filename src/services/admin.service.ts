@@ -9,12 +9,30 @@ import type { Recipe, CreateRecipeRequest, UpdateRecipeRequest } from "@/types/a
 
 // Admin Types
 export interface AdminUser {
-  id: string;
+  id: number;
   username: string;
+  name: string | null;
   email: string;
+  profile_url: string | null;
   is_active: boolean;
-  is_admin: boolean;
+  role_id: number;
+  role_name: string;
   created_at: string;
+  total_recipes: number;
+  total_cooking_sessions: number;
+  total_feedbacks: number;
+}
+
+export interface AdminUsersResponse {
+  total: number;
+  users: AdminUser[];
+}
+
+export interface PaginatedUsers {
+  items: AdminUser[];
+  total: number;
+  skip?: number;
+  limit?: number;
 }
 
 export interface AdminFeedback {
@@ -88,22 +106,49 @@ export const adminRecipesService = {
 
 export const adminUsersService = {
   async list(): Promise<AdminUser[]> {
-    const res = await apiService.get<AdminUser[]>(API_CONFIG.ENDPOINTS.ADMIN_USERS);
-    return Array.isArray(res.data) ? res.data : [];
+    const res = await apiService.get<AdminUsersResponse>(API_CONFIG.ENDPOINTS.ADMIN_USERS);
+    // API returns {total: number, users: AdminUser[]}
+    if (res.data && Array.isArray(res.data.users)) {
+      return res.data.users;
+    }
+    return [];
   },
 
-  async getById(id: string): Promise<AdminUser> {
-    const res = await apiService.get<AdminUser>(API_CONFIG.ENDPOINTS.ADMIN_USER_DETAIL(id));
+  async listWithTotal(): Promise<PaginatedUsers> {
+    const res = await apiService.get<AdminUsersResponse>(API_CONFIG.ENDPOINTS.ADMIN_USERS);
+    console.log('Admin Users API Response:', res.data);
+    
+    // API returns {total: number, users: AdminUser[]}
+    if (res.data && Array.isArray(res.data.users)) {
+      return {
+        items: res.data.users,
+        total: res.data.total,
+        skip: 0,
+        limit: res.data.users.length
+      };
+    }
+    
+    // Default empty response
+    return {
+      items: [],
+      total: 0,
+      skip: 0,
+      limit: 0
+    };
+  },
+
+  async getById(id: number | string): Promise<AdminUser> {
+    const res = await apiService.get<AdminUser>(API_CONFIG.ENDPOINTS.ADMIN_USER_DETAIL(String(id)));
     return res.data;
   },
 
-  async activate(id: string): Promise<AdminUser> {
-    const res = await apiService.post<AdminUser>(API_CONFIG.ENDPOINTS.ADMIN_USER_ACTIVATE(id));
+  async activate(id: number | string): Promise<AdminUser> {
+    const res = await apiService.post<AdminUser>(API_CONFIG.ENDPOINTS.ADMIN_USER_ACTIVATE(String(id)));
     return res.data;
   },
 
-  async deactivate(id: string): Promise<AdminUser> {
-    const res = await apiService.post<AdminUser>(API_CONFIG.ENDPOINTS.ADMIN_USER_DEACTIVATE(id));
+  async deactivate(id: number | string): Promise<AdminUser> {
+    const res = await apiService.post<AdminUser>(API_CONFIG.ENDPOINTS.ADMIN_USER_DEACTIVATE(String(id)));
     return res.data;
   },
 };

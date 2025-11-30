@@ -89,6 +89,7 @@ export default function AdminRecipes() {
               <tr className="border-b">
                 <th className="px-6 py-4 text-left text-sm font-medium">Title</th>
                 <th className="px-6 py-4 text-left text-sm font-medium">Difficulty</th>
+                <th className="px-6 py-4 text-left text-sm font-medium">Visibility</th>
                 <th className="px-6 py-4 text-left text-sm font-medium">Prep Time</th>
                 <th className="px-6 py-4 text-left text-sm font-medium">Cook Time</th>
                 <th className="px-6 py-4 text-right text-sm font-medium">Actions</th>
@@ -97,13 +98,13 @@ export default function AdminRecipes() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
                     Loading recipes...
                   </td>
                 </tr>
               ) : filteredRecipes.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
                     No recipes found
                   </td>
                 </tr>
@@ -112,15 +113,24 @@ export default function AdminRecipes() {
                   <tr key={recipe.id} className="border-b hover:bg-accent/50">
                     <td className="px-6 py-4">
                       <div className="font-medium">{recipe.title}</div>
-                      <div className="text-sm text-muted-foreground">{recipe.author}</div>
+                      <div className="text-sm text-muted-foreground">{recipe.creator?.username || recipe.created_by}</div>
                     </td>
                     <td className="px-6 py-4">
                       <span className="px-2 py-1 rounded-full text-xs bg-primary/10 text-primary">
-                        {recipe.difficulty || 'Medium'}
+                        {recipe.difficulty_level || 'Medium'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm">{recipe.prepTime || 'N/A'}</td>
-                    <td className="px-6 py-4 text-sm">{recipe.cookTime || 'N/A'}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        recipe.is_public 
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                          : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+                      }`}>
+                        {recipe.is_public ? 'Public' : 'Private'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm">{recipe.preparation_time ? `${recipe.preparation_time}m` : 'N/A'}</td>
+                    <td className="px-6 py-4 text-sm">{recipe.cooking_time ? `${recipe.cooking_time}m` : 'N/A'}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
                         <Button variant="ghost" size="sm">

@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { ChefHat, Users, MessageSquare, TrendingUp } from "lucide-react";
+import { ChefHat, Users, MessageSquare, TrendingUp, Eye, EyeOff } from "lucide-react";
 import { adminService } from "@/services/admin.service";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
     totalRecipes: 0,
+    publicRecipes: 0,
+    privateRecipes: 0,
     totalUsers: 0,
     totalFeedbacks: 0,
     totalSessions: 0,
@@ -18,21 +20,35 @@ export default function AdminDashboard() {
 
   const loadStats = async () => {
     try {
-      const [recipes, users, feedbacks, sessions] = await Promise.all([
+      const [recipes, usersData, feedbacks, sessions] = await Promise.all([
         adminService.recipes.list(),
-        adminService.users.list(),
+        adminService.users.listWithTotal(),
         adminService.feedbacks.list(),
         adminService.analytics.getCookingSessions(),
       ]);
 
+      const publicRecipes = recipes.filter(recipe => recipe.is_public).length;
+      const privateRecipes = recipes.filter(recipe => !recipe.is_public).length;
+
       setStats({
         totalRecipes: recipes.length || 0,
-        totalUsers: users.length || 0,
+        publicRecipes,
+        privateRecipes,
+        totalUsers: usersData.total || 0, // Use total from API response
         totalFeedbacks: feedbacks.length || 0,
         totalSessions: sessions.length || 0,
       });
     } catch (error) {
       console.error('Failed to load stats:', error);
+      // Set default values on error
+      setStats({
+        totalRecipes: 0,
+        publicRecipes: 0,
+        privateRecipes: 0,
+        totalUsers: 0,
+        totalFeedbacks: 0,
+        totalSessions: 0,
+      });
     } finally {
       setLoading(false);
     }
@@ -40,9 +56,11 @@ export default function AdminDashboard() {
 
   const statCards = [
     { icon: ChefHat, label: 'Total Recipes', value: stats.totalRecipes, color: 'text-primary' },
+    { icon: Eye, label: 'Public Recipes', value: stats.publicRecipes, color: 'text-green-500' },
+    { icon: EyeOff, label: 'Private Recipes', value: stats.privateRecipes, color: 'text-orange-500' },
     { icon: Users, label: 'Total Users', value: stats.totalUsers, color: 'text-blue-500' },
-    { icon: MessageSquare, label: 'Total Feedbacks', value: stats.totalFeedbacks, color: 'text-green-500' },
-    { icon: TrendingUp, label: 'Cooking Sessions', value: stats.totalSessions, color: 'text-purple-500' },
+    { icon: MessageSquare, label: 'Total Feedbacks', value: stats.totalFeedbacks, color: 'text-purple-500' },
+    { icon: TrendingUp, label: 'Cooking Sessions', value: stats.totalSessions, color: 'text-cyan-500' },
   ];
 
   return (
@@ -54,7 +72,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {statCards.map((stat) => (
           <Card key={stat.label} className="glass-card p-6">
             <div className="flex items-center justify-between">

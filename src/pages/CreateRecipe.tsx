@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Upload, X } from "lucide-react";
@@ -226,6 +227,20 @@ export default function CreateRecipe() {
                     min="0"
                   />
                 </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="public-toggle">Make recipe public</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Allow other users to discover and view this recipe
+                  </p>
+                </div>
+                <Switch
+                  id="public-toggle"
+                  checked={formData.is_public}
+                  onCheckedChange={(checked) => setFormData({ ...formData, is_public: checked })}
+                />
               </div>
             </Card>
 
